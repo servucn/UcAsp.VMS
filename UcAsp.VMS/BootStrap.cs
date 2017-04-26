@@ -13,7 +13,7 @@ using System.Text;
 using Config = UcAsp.VMS.Config;
 using System.Threading;
 using System.IO;
-using log4net;s
+using log4net;
 namespace UcAsp.VMS
 {
     public class BootStrap : IDisposable

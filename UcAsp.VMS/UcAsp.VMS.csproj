@@ -13,11 +13,11 @@
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\ISCS.Container\bin\Debug\App\VMS\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -53,15 +53,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\ISCS.Container\HttpBase.cs">
-      <Link>HttpBase.cs</Link>
-    </Compile>
-    <Compile Include="..\ISCS.Container\HttpHeader.cs">
-      <Link>HttpHeader.cs</Link>
-    </Compile>
-    <Compile Include="..\ISCS.Container\HttpSession.cs">
-      <Link>HttpSession.cs</Link>
-    </Compile>
     <Compile Include="BootStrap.cs" />
     <Compile Include="Config\Config.cs" />
     <Compile Include="Config\Events.cs" />
@@ -75,8 +66,11 @@
     <Compile Include="HikVision.cs" />
     <Compile Include="FFmpeg.cs" />
     <Compile Include="HashCode.cs" />
+    <Compile Include="HttpBase.cs" />
     <Compile Include="HttpCode.cs" />
+    <Compile Include="HttpHeader.cs" />
     <Compile Include="HttpServer.cs" />
+    <Compile Include="HttpSession.cs" />
     <Compile Include="IDevice.cs" />
     <Compile Include="MjpegWriter.cs" />
     <Compile Include="NVRDownloadTime.cs" />
@@ -93,9 +87,6 @@
     <Compile Include="ReuestInfo.cs" />
     <Compile Include="RunParam.cs" />
     <Compile Include="Status.cs" />
-    <Compile Include="v1\action.cs" />
-    <Compile Include="v1\channels.cs" />
-    <Compile Include="v1\requestinfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="HiK\HCNetSDKCom\HCAlarm.lib">
