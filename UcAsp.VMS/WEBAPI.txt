@@ -1,0 +1,56 @@
+﻿Api Url: http://localhost:6001/webapi/
+
+一：兼容 KaiSQ
+1 . 合并视频： http://localhost:6001/webapi/iscs/requestnvrplaybackvideourl
+    method:Post
+	Body:package-id=123456789&request-device-list=[{"nvr_ip":"192.168.2.1","channels":[{"channel_ip":"192.168.1.34","start_time":"04022017121400","end_time":"04022017121500"}]},{"nvr_ip":"192.168.2.1","channels":[{"channel_ip":"192.168.1.34","start_time":"04022017121500","end_time":"04022017121700"}]}]
+注意：start_time and end_time 美国标准时间
+	返回值：
+	{"result": "ok","package-id": "123456789","request-id": "5073f8354e3f4ccd8f68bf29a0290f30" }
+
+2. http://localhost:6002/webapi/iscs/checkrequestnvrplaybackvideourlstatus
+	method :Post
+	Body:request-id=5073f8354e3f4ccd8f68bf29a0290f30
+	返回值：
+	{"result":"ok","package-id":"123456789","request-id":"5073f8354e3f4ccd8f68bf29a0290f30","urls":[{"status":"Done","nvr-video-url":"http://localhost:6002/video/123456789_65a345771519fcabc21fac58b195628_gobal.mp4"},{"cifs-video-url":"","status":"None"}]}
+
+二：iscs.wcs.vms
+    1.合并视频：http://localhost:6001/webapi/iscs.wcs.vms/mergevideo
+	method:Post
+	Body:
+	[{"PackageUkid":"123456789","RequestId":"123456","Channels":[{"NvrIp":"192.168.2.1","ChannelIp":"192.168.1.38","StartTime":"2017/01/13 13:26:00","EndTime":"2017/01/13 13:27:00"},{"NvrIp":"192.168.2.1","ChannelIp":"192.168.1.39","StartTime":"2017/01/13 13:27:00","EndTime":"2017/01/13 13:29:00"}]}]
+	返回值：
+	{"result":"ok","package-id":"123456789","request-id":"a84aa0b9f7184ed3980317f2fa6e5da7","urls":[{"status":"Done","nvr-video-url":"http://localhost:6002/video/123456789_33c06aec89a2f0a91221c313d82ff18a_gobal.mp4"},{"cifs-video-url":"","status":"None"}]}
+	2.设置视频录像文字：http://localhost:6001/webapi/iscs.wcs.vms/osd
+	method:Post
+	Body
+	["nvrip","chanleip",[{"text":"测试","X":12,"Y":12,"Show":true}]] (["192.168.2.1","192.168.1.38",[{"text":"测试","X":12,"Y":12,"show":true}]])
+	返回：
+	{"result":"ok"}
+	3.保存当前图片 http://localhost:6001/webapi/iscs.wcs.vms/saveimage
+	method:Post
+	Body:["nvrip","chanleip"](如：["192.168.2.1","192.168.1.38"])
+	返回：
+	{"result":"ok","url":"http://localhost:6002/jpg/636218254119850860.jpg"}
+	4.获取仓库所有监控摄像头：http://localhost:6001/webapi/iscs.wcs.vms/camera
+	method:Post
+	body:
+	返回：
+	[{"Host":{"LUserId":0,"DVRIPAddress":"10.20.100.45","DVRPort":8000,"DVRUserName":"admin","DVRPassword":"iscs123456","ErrorMsg":null},"IPCs":[{"ChannelNumber":"51804100000136067","ChannelName":"IPCamera0","ChannelIndex":1,"ChannelIp":"10.20.100.45","AdminPort":"","UserName":null,"Password":null,"Status":1,"ErrorMsg":null}]}]
+
+	5.开始录像：http://localhost:6001/webapi/iscs.wcs.vms/savevideo
+	method:Post
+	Body:
+	["nvrip","chanelip",packageukid](如：["192.168.2.1","192.168.1.39",123456789])
+	返回：
+	{"result":"ok","msg":5964}
+	6 停止录像 http://localhost:6001/webapi/iscs.wcs.vms/stopvideo
+	method:Post
+	Body:[msg](如：[5964])
+	返回：{"result":"ok"}
+
+
+	
+
+
+
