@@ -111,9 +111,9 @@ namespace UcAsp.VMS
                 Directory.CreateDirectory(Path + "\\" + filepath + "\\");
             }
 
-            int id = RunProcess(@"-i rtsp://" + hikv.DVRUserName + ":" + hikv.DVRPassword + "@" + hikv.DVRIPAddress + "/h264/ch" + channelindex + @"/main/av_stream  -vcodec copy " + Path + "\\" + filepath + "\\" + packageukid + ".mp4  ", out msg, false);
+            int id = RunProcess(@"-i rtsp://" + hikv.DVRUserName + ":" + hikv.DVRPassword + "@" + hikv.DVRIPAddress + "/h264/ch" + channelindex + @"/main/av_stream -r 16 -vcodec copy " + Path + "\\" + filepath + "\\" + packageukid + ".mp4  ", out msg, false);
 
-
+            ;
             return id;
         }
 
@@ -128,27 +128,58 @@ namespace UcAsp.VMS
             oInfo.RedirectStandardError = true;
             oInfo.RedirectStandardInput = true;
 
+            int id = 0;
             msg = string.Empty;
             StreamReader srOutput = null;
-            int id = 0;
 
             try
             {
                 Process proc = System.Diagnostics.Process.Start(oInfo);
+                proc.BeginErrorReadLine();
+                proc.BeginOutputReadLine();
                 proc.ErrorDataReceived += Proc_ErrorDataReceived;
                 id = proc.Id;
-                if (exit)
-                {
-                    srOutput = proc.StandardError;
-                    msg = srOutput.ReadToEnd();
-                    _log.Info(msg);
-                    proc.WaitForExit(60 * 1000 * 5);
-                    proc.Close();
-                }
+                System.Threading.Thread thread = new System.Threading.Thread(new System.Threading.ParameterizedThreadStart(Run));
+                thread.Start(proc);
+
             }
             catch (Exception ex)
             {
+                _log.Error(ex);
                 msg = string.Empty;
+            }
+            return (int)id;
+        }
+
+        private static void Proc_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+        {
+          //  _log.Info(e.Data);
+           // Console.WriteLine(e.Data);
+        }
+
+        public delegate bool ConsoleCtrlDelegate(int dwCtrlType);
+        public static int ColseProcess(int id)
+        {
+
+            ConsoleCtrl ctrl = new ConsoleCtrl(id);
+            return ctrl.ErrorMsg;
+
+        }
+        private static void Run(object obj)
+        {
+            Process proc = (Process)obj;
+            StreamReader srOutput = null;
+            try
+            {
+                srOutput = proc.StandardError;
+                string msg = srOutput.ReadToEnd();
+                _log.Info(msg);
+                proc.WaitForExit(60 * 1000 * 5);
+                proc.Close();
+            }
+            catch (Exception ex)
+            {
+                _log.Error(ex);
             }
             finally
             {
@@ -160,20 +191,6 @@ namespace UcAsp.VMS
 
 
             }
-            return (int)id;
-        }
-
-        private static void Proc_ErrorDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            Console.WriteLine(e.Data);
-        }
-
-        public delegate bool ConsoleCtrlDelegate(int dwCtrlType);
-        public static int ColseProcess(int id)
-        {
-
-            ConsoleCtrl ctrl = new ConsoleCtrl(id);
-            return ctrl.ErrorMsg;
 
         }
     }

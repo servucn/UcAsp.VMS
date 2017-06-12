@@ -20,21 +20,19 @@ using System.IO;
 namespace UcAsp.VMS
 {
 
-    public class HikVision : IDevice
+    public class HikVision :DeviceBase
     {
         public static ILog _log = LogManager.GetLogger("HikVision");
         string configpath = AppDomain.CurrentDomain.BaseDirectory + "iscs.config";
-        public string ErrorMsg { get; set; }
-
+        
         private System.Timers.Timer heartbeat = new System.Timers.Timer();
         private Dictionary<int, long> process = new Dictionary<int, long>();
         private CHCNetSDK.NET_DVR_IPPARACFG_V40 struIpParaCfgV40;
 
         private CHCNetSDK.NET_DVR_PICCFG_V40 struPicCfgV40;
         private CHCNetSDK.NET_DVR_SHOWSTRING_V30 m_struShowStrCfg;
-        public List<NVRInfo> NVRInfos { get; set; }
-        public long LastRunTime { get; set; }
-        public bool Initialilize()
+
+        public override bool Initialilize()
         {
             LastRunTime = DateTime.Now.Ticks / 10000;
             struIpParaCfgV40 = new CHCNetSDK.NET_DVR_IPPARACFG_V40();
@@ -292,7 +290,7 @@ namespace UcAsp.VMS
             }
         }
 
-        public bool IPCOSD(string nvrip, string ipcip, string osd)
+        public override bool IPCOSD(string nvrip, string ipcip, string osd)
         {
             List<OSD> text = JsonConvert.DeserializeObject<List<OSD>>(osd).Take(8).ToList();
             NVRInfo nvr = NVRInfos.FirstOrDefault(o => o.Host.DVRIPAddress == nvrip);
@@ -359,7 +357,7 @@ namespace UcAsp.VMS
             }
         }
 
-        public bool CheckState()
+        public override bool CheckState()
         {
             _log.Debug("CheckState");
             //  Process.GetCurrentProcess().MinWorkingSet = new System.IntPtr(100);
@@ -368,7 +366,7 @@ namespace UcAsp.VMS
             return true;
         }
 
-        public int SaveVideo(string nvrip, string ipcip, long packageukid)
+        public override int SaveVideo(string nvrip, string ipcip, long packageukid)
         {
             NVRInfo nvr = NVRInfos.FirstOrDefault(o => o.Host.DVRIPAddress == nvrip);
             if (nvr == null)
@@ -392,7 +390,7 @@ namespace UcAsp.VMS
             return id;
         }
 
-        public bool StopVideo(int id)
+        public override bool StopVideo(int id)
         {
             int result = FFmpeg.ColseProcess(id);
             if (process.ContainsKey(id))
@@ -406,7 +404,7 @@ namespace UcAsp.VMS
             }
             return true;
         }
-        public bool SaveImage(string nvrip, string ipcip, string filename)
+        public override bool SaveImage(string nvrip, string ipcip, string filename)
         {
             NVRInfo nvr = NVRInfos.FirstOrDefault(o => o.Host.DVRIPAddress == nvrip);
             if (nvr == null)
@@ -435,7 +433,7 @@ namespace UcAsp.VMS
             return re;
         }
 
-        public byte[] GetImageByte(string nvrip, string ipcip)
+        public override byte[] GetImageByte(string nvrip, string ipcip)
         {
             NVRInfo nvr = NVRInfos.FirstOrDefault(o => o.Host.DVRIPAddress == nvrip);
             if (nvr == null)
@@ -468,7 +466,7 @@ namespace UcAsp.VMS
         {
             Dispose();
         }
-        public void Dispose()
+        public override void Dispose()
         {
             foreach (NVRInfo nvr in NVRInfos)
             {

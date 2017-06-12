@@ -41,10 +41,11 @@ namespace UcAsp.VMS
             FFmpeg.FileSavePath = VirtualDirectory + "\\video\\";
             FFmpeg.Path = Path;
             base.Listen(obj);
+
         }
 
 
-        public override void Action(Socket socket, string content, string[] Route)
+        public override void Action(TcpClient socket, string content, string[] Route)
         {
 
 
@@ -184,106 +185,6 @@ namespace UcAsp.VMS
 
                 }
                 #endregion
-                //#region KaiSQ iscs
-                //else if (Route[2].ToLower() == "iscs")
-                //{
-
-                //    v1.action ac = new v1.action();
-                //    #region requestnvrplaybackvideourl
-                //    if (Route[3].ToLower() == "requestnvrplaybackvideourl")
-                //    {
-                //        try
-                //        {
-                //            ReuestInfo param = ac.requestnvrplaybackvideourl(content).Item2;
-                //            if (param == null)
-                //            {
-                //                SendCode(socket, "{\"result\": \"error\",\"reason\": \"Missing 'request-device-list'\" }");
-
-                //            }
-                //            else
-                //            {
-                //                string rid = Guid.NewGuid().ToString().Replace("-", "");
-                //                param.RequestId = rid;
-
-                //                HttpRespone.RequestForm(content);
-                //                param.Hash = HashCode.GetHash(HttpRespone.Form("request-device-list"));
-
-                //                CoreThread corerun = new CoreThread();
-                //                corerun.Server = this;
-                //                Thread core = new Thread(new ParameterizedThreadStart(corerun.Task));
-                //                core.Start(param);
-                //                _log.Info("{\"result\": \"ok\",\"package-id\": \"" + param.PackageUkid + "\",\"request-id\": \"" + param.RequestId + "\" }");
-                //                Console.WriteLine("{\"result\": \"ok\",\"package-id\": \"" + param.PackageUkid + "\",\"request-id\": \"" + param.RequestId + "\" }");
-
-                //                SendCode(socket, "{\"result\": \"ok\",\"package-id\": \"" + param.PackageUkid + "\",\"request-id\": \"" + param.RequestId + "\" }");
-                //                Thread.Sleep(100);
-                //            }
-                //        }
-                //        catch (Exception ex)
-                //        {
-                //            _log.Error(ex);
-                //        }
-
-                //    }
-                //    #endregion
-                //    #region Login
-                //    else if (Route[3].ToLower() == "login")
-                //    {
-
-                //        string result = "{\"result\": \"ok\",\"session-key\": \"" + new Random().Next(99999999).ToString("0000000") + "\",\"user-id\": \"123\",\"expiry\": \"" + DateTime.Now.AddDays(3) + "\"}";
-                //        _log.Info(result);
-                //        SendCode(socket, result);
-                //    }
-                //    #endregion
-                //    #region checkrequestnvrplaybackvideourlstatus
-                //    else if (Route[3].ToLower() == "checkrequestnvrplaybackvideourlstatus")
-                //    {
-                //        try
-                //        {
-                //            _log.Info("检查状态");
-                //            Dictionary<string, string> req = new Dictionary<string, string>();
-                //            string[] _r = Regex.Split(content, "&");
-                //            for (int s = 0; s < _r.Length; s++)
-                //            {
-                //                string[] _s = Regex.Split(_r[s], "=");
-                //                if (_s.Length == 2)
-                //                {
-                //                    req.Add(_s[0], _s[1]);
-                //                }
-                //            }
-                //            int i = 0;
-                //            while (!Result.ContainsKey(req["request-id"]))
-                //            {
-                //                if (i > 1000)
-                //                {
-
-                //                    break;
-                //                }
-                //                Thread.Sleep(100);
-                //                i++;
-                //            }
-                //            if (Result.ContainsKey(req["request-id"]))
-                //            {
-                //                SendCode(socket, Result[req["request-id"]]);
-                //            }
-                //            else
-                //            {
-
-                //                SendCode(socket, Progress[req["request-id"]]);
-                //            }
-                //        }
-
-                //        catch (Exception ex)
-                //        {
-                //            HttpRespone.SendError(_httpversion, ref socket);
-                //            _log.Error(ex);
-                //        }
-
-                //    }
-                //    #endregion
-
-                //}
-                //#endregion
 
             }
             else if (Route[1].ToLower() == "video")
@@ -341,5 +242,8 @@ namespace UcAsp.VMS
 
 
         }
+
+        private void SaveVideo(string code)
+        { }
     }
 }

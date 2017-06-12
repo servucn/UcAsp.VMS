@@ -94,13 +94,12 @@ namespace UcAsp.VMS
             string url = setting.GetValue("http", "url", "http://127.0.0.1");
             _server = new HttpServer();
             _server.TempPath = Temp = temp;
-            _server.Url = url;
-            _server.StartListen(port);
+            _server.Url = url;           
             _server.NVRInfos = NVRInfos;
             _server.Strap = this;
             _server.Path = path;
             _server.VirtualDirectory = dir;
-
+            _server.StartListen(port);
 
         }
 

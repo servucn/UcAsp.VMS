@@ -17,9 +17,12 @@ namespace UcAsp.VMS
     {
         public string AppCode(List<NVRInfo> nvrs)
         {
+            if (nvrs == null)
+                return "";
             StringBuilder sb = new StringBuilder();
-            sb.Append(@"<div class=""panel panel-primary""><div class=""panel-heading""><h3>ISCS VMS管理中心</h3></div>" + Environment.NewLine);
+            sb.Append(@"<div class=""panel panel-primary""><div class=""panel-heading""><h3>UCASP VMS管理中心</h3></div>" + Environment.NewLine);
             sb.Append(@"<table class=""table table-responsive"">" + Environment.NewLine);
+
             foreach (NVRInfo nvr in nvrs)
             {
                 sb.Append(@"<tr class=""active"">" + Environment.NewLine);

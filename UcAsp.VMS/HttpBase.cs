@@ -21,6 +21,7 @@ namespace UcAsp.VMS
     public class HttpBase : IDisposable
     {
         private readonly static ILog _log = LogManager.GetLogger(typeof(HttpBase));
+        CancellationTokenSource token = new CancellationTokenSource();
         public TcpListener _server;
         public string _httpversion;
         public string _url = string.Empty;
@@ -49,7 +50,9 @@ namespace UcAsp.VMS
             Http = _url;
             _server = new TcpListener(IPAddress.Any, port);
             _server.Start(3000);
-            ThreadPool.QueueUserWorkItem(AcceptSocket, null);
+            // AcceptSocket(null);
+            Thread RunSocket = new Thread(new ParameterizedThreadStart(AcceptSocket));
+            RunSocket.Start();
             timer = new Timer(new TimerCallback(timer_Callback), null, 30000, 300000);
         }
         public virtual void timer_Callback(object sender)
@@ -58,20 +61,20 @@ namespace UcAsp.VMS
         }
         public void AcceptSocket(object obj)
         {
-            while (true)
+            while (!token.IsCancellationRequested)
             {
+                TcpClient client = null;
                 try
                 {
-                    if (stop)
-                        break;
-                    Socket client = _server.AcceptSocket();
-                    Listen(client);
-                    client.Close();
+                    Thread.Sleep(10);
+                    client = _server.AcceptTcpClient();
+                    Thread clientThread = new Thread(new ParameterizedThreadStart(Listen));
+                    clientThread.Start(client);
+                    // Listen(client);
                 }
                 catch (Exception ex)
                 {
                     _log.Error(ex);
-                    break;
                 }
                 finally
                 {
@@ -83,9 +86,8 @@ namespace UcAsp.VMS
         public virtual void Listen(object obj)
         {
             string sDirName;
-            String OutMessage = string.Empty;
-
-            Socket socket = (Socket)obj;
+            TcpClient socket = (TcpClient)obj;
+            NetworkStream ns = socket.GetStream();
             socket.ReceiveTimeout = 10000;
             socket.SendTimeout = 10000;
             string content = string.Empty;
@@ -95,23 +97,28 @@ namespace UcAsp.VMS
                 {
                     string strbuffer = string.Empty;
                     LastRunTime = DateTime.Now;
-                    while (true)
+                    int _trytimes = 0;
+
+                    if (socket.Available > 0)
                     {
 
+
                         Byte[] bReceive = new Byte[buffersize];
-                        int i = socket.Receive(bReceive, bReceive.Length, 0);
+                        int i = ns.Read(bReceive, 0, buffersize);
                         //转换成字符串类型
                         strbuffer = strbuffer + Encoding.UTF8.GetString(bReceive).Substring(0, i);
-                        Console.WriteLine("read:");
-                        if (i - buffersize < 0)
-                        {
-                            break;
-                        }
+                    }
+                    else
+                    {
+                        HttpRespone.SendError(_httpversion, ref socket);
+                        socket.Close();
+                        return;
                     }
                     _log.Error(strbuffer);
                     if (string.IsNullOrEmpty(strbuffer))
                     {
                         HttpRespone.SendError(_httpversion, ref socket);
+                        socket.Close();
                         return;
                     }
                     Header = HttpRespone.RequestHeader(strbuffer).Item1;
@@ -133,19 +140,19 @@ namespace UcAsp.VMS
                     string[] Code = r.Split(strbuffer);
                     content = Code[1];
                     LastParam = content;
+
                     if (Header.ContainsKey("Content-Length"))
                     {
 
                         int len = int.Parse(Header["Content-Length"]);
-                        while (content.Length < len)
+                        if (len > Encoding.UTF8.GetBytes(content).Length)
                         {
                             Byte[] bReceive = new Byte[len];
-                            int i = socket.Receive(bReceive, bReceive.Length, 0);
-                            strbuffer = strbuffer + Encoding.UTF8.GetString(bReceive).Substring(0, i);
+                            ns.Read(bReceive, 0, len);
+
+                            strbuffer = strbuffer + Encoding.UTF8.GetString(bReceive);
                             LastParam = content = strbuffer;
                             _log.Error("Content-Length：" + len);
-                            if (Encoding.UTF8.GetBytes(content).Length - len == 0)
-                            { break; }
                         }
 
                     }
@@ -167,7 +174,7 @@ namespace UcAsp.VMS
                 }
                 finally
                 {
-                    // socket.Close();
+                    socket.Close();
 
 
                 }
@@ -175,18 +182,18 @@ namespace UcAsp.VMS
             }
         }
 
-        public virtual void Action(Socket socket, string content, string[] Route)
+        public virtual void Action(TcpClient socket, string content, string[] Route)
         {
 
         }
-        public virtual void SendCode(Socket socket, string code)
+        public virtual void SendCode(TcpClient socket, string code)
         {
             byte[] buffer = Encoding.UTF8.GetBytes(code);
             HttpRespone.SendHeader(_httpversion, "text/html", buffer.Length, " 200 OK", ref socket);
             HttpRespone.SendToBrowser(buffer, ref socket);
         }
 
-        public virtual void SendJson(Socket socket, string code)
+        public virtual void SendJson(TcpClient socket, string code)
         {
             byte[] buffer = Encoding.UTF8.GetBytes(code);
             HttpRespone.SendHeader(_httpversion, "text/html", buffer.Length, " 200 OK", ref socket);
@@ -244,7 +251,7 @@ namespace UcAsp.VMS
             public static string SessionId = "";
             public static HttpSession Session;
             private readonly static ILog _log = LogManager.GetLogger(typeof(HttpRespone));
-            public static void SendHeader(string sHttpVersion, string sMIMEHeader, long iTotBytes, string sStatusCode, ref Socket mySocket)
+            public static void SendHeader(string sHttpVersion, string sMIMEHeader, long iTotBytes, string sStatusCode, ref TcpClient mySocket)
             {
 
                 String sBuffer = "";
@@ -275,15 +282,15 @@ namespace UcAsp.VMS
                 SendToBrowser(sBuffer, ref mySocket);
 
             }
-            public static void SendToBrowser(string data, ref Socket socket)
+            public static void SendToBrowser(string data, ref TcpClient socket)
             {
                 try
                 {
                     if (socket.Connected)
                     {
                         byte[] buffer = Encoding.UTF8.GetBytes(data);
-
-                        socket.Send(buffer, buffer.Length, 0);
+                        NetworkStream ns = socket.GetStream();
+                        ns.Write(buffer, 0, buffer.Length);
                     }
 
                 }
@@ -292,13 +299,14 @@ namespace UcAsp.VMS
                     _log.Error(e);
                 }
             }
-            public static void SendToBrowser(byte[] data, ref Socket socket)
+            public static void SendToBrowser(byte[] data, ref TcpClient socket)
             {
                 try
                 {
                     if (socket.Connected)
                     {
-                        socket.Send(data, 0, data.Length, SocketFlags.None);
+                        NetworkStream ns = socket.GetStream();
+                        ns.Write(data, 0, data.Length);
                     }
                 }
                 catch (Exception e)
@@ -306,19 +314,19 @@ namespace UcAsp.VMS
                     _log.Error(e);
                 }
             }
-            public static void SendError(string sHttpVersion, ref Socket mySocket)
+            public static void SendError(string sHttpVersion, ref TcpClient mySocket)
             {
                 string OutMessage = "<H2>Error!! 404 Not Found</H2><Br>";
                 SendHeader(sHttpVersion, "", OutMessage.Length, " 404 Not Found", ref mySocket);
                 SendToBrowser(OutMessage, ref mySocket);
             }
-            public static void SendError(string sHttpVersion, string errorMsg, ref Socket mySocket)
+            public static void SendError(string sHttpVersion, string errorMsg, ref TcpClient mySocket)
             {
                 string OutMessage = "<H2>Error!! 404 Not Found</H2><Br>" + errorMsg;
                 SendHeader(sHttpVersion, "", OutMessage.Length, " 404 Not Found", ref mySocket);
                 SendToBrowser(OutMessage, ref mySocket);
             }
-            public static void SendExpect(ref Socket mySocket)
+            public static void SendExpect(ref TcpClient mySocket)
             {
 
                 SendToBrowser("HTTP/1.1 100 Continue", ref mySocket);
@@ -414,7 +422,7 @@ namespace UcAsp.VMS
                 sb.Append("<!DOCTYPE html>" + Environment.NewLine);
                 sb.Append(@"<html lang = ""en"">" + Environment.NewLine);
                 sb.Append(@"<head>" + Environment.NewLine);
-                sb.Append(@"<title>WWWarehouse 网仓设备 服务控制管理中心</title>" + Environment.NewLine);
+                sb.Append(@"<title>服务控制管理中心</title>" + Environment.NewLine);
 
                 sb.Append(@"<meta http-equiv=""Content-Type"" content=""text/html; charset=utf-8"" />" + Environment.NewLine);
                 sb.Append(@"<link href=""//echarts.baidu.com/echarts2/doc/asset/css/bootstrap.css"" rel=""stylesheet"" />" + Environment.NewLine);
@@ -435,7 +443,7 @@ namespace UcAsp.VMS
         }
         public void Dispose()
         {
-            stop = true;
+            token.Cancel();
             timer.Dispose();
             _server.Stop();
         }

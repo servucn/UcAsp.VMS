@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{6F771013-0683-403C-857C-ADCCF461FFB9}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>UcAsp.VMS</RootNamespace>
     <AssemblyName>UcAsp.VMS</AssemblyName>
@@ -53,6 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Axis.cs" />
     <Compile Include="BootStrap.cs" />
     <Compile Include="Config\Config.cs" />
     <Compile Include="Config\Events.cs" />
@@ -63,6 +64,7 @@
     <Compile Include="Config\XmlBuffer.cs" />
     <Compile Include="ConsoleCtrl.cs" />
     <Compile Include="CoreThread.cs" />
+    <Compile Include="DeviceBase.cs" />
     <Compile Include="HikVision.cs" />
     <Compile Include="FFmpeg.cs" />
     <Compile Include="HashCode.cs" />
@@ -99,7 +101,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
-    <None Include="wcs.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="FFmpeg\ffmpeg.exe">
